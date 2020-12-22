@@ -1,5 +1,5 @@
 /**
-    Copyright (C) 2020 sshconcli
+    Copyright (C) 2020-2021 sshconcli
 
     Written by Tobias Eliasson <arnestig@gmail.com>.
 

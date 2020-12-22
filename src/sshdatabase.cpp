@@ -1,5 +1,5 @@
 /**
-    Copyright (C) 2020 sshconcli
+    Copyright (C) 2020-2021 sshconcli
 
     Written by Tobias Eliasson <arnestig@gmail.com>.
 
@@ -38,17 +38,6 @@ bool sortConnections(Connection *l, Connection *r) {
 Connection::Connection( std::string name )
     :   name( name )
 {
-    bool skip_sudo = 1;
-    // skip first group if it is sudo. Option for this?
-    size_t p = name.find_first_of(" ");
-    group = name.substr(0,p);
-    if ( skip_sudo ) {
-        if ( group == "sudo" ) {
-            size_t s = p+1;
-            p = name.find_first_of(" ",s);
-            group = name.substr(s,p-s);
-        }
-    }
 }
 
 Connection::~Connection()
@@ -68,6 +57,11 @@ std::string Connection::getGroup() const
 void Connection::setName( std::string name )
 {
     this->name = name;
+}
+
+void Connection::setGroup( std::string group )
+{
+    this->group = group;
 }
 
 /** END COMMAND **/
