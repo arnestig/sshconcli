@@ -41,7 +41,7 @@ Window::~Window()
 {
 	delwin( helpWindow );
 	delwin( searchWindow );
-	delwin( commandWindow );
+	delwin( connectionWindow );
 	delwin( groupWindow );
 	refresh();
 	endwin();
@@ -60,8 +60,8 @@ void Window::init()
 	searchWindow = newwin( 3, x/2 - 1, 1, 1 );
 	keypad( searchWindow, true );
 
-	// command window
-	commandWindow = newwin( y-7, x - 2, 7, 1 );
+	// connection window
+	connectionWindow = newwin( y-7, x - 2, 7, 1 );
 
 	// group window
 	groupWindow = newwin( 3, x - 2, 4, 1 );
@@ -71,9 +71,9 @@ void Window::init()
 void Window::runConnection()
 {
 	if ( curConnection != NULL ) {
-		std::string commandName = curConnection->getName();
-		for( size_t i = 0; i < commandName.length(); i++ ) {
-			ioctl(0,TIOCSTI, (char*)commandName.c_str()+i);
+		std::string connectionName = curConnection->getName();
+		for( size_t i = 0; i < connectionName.length(); i++ ) {
+			ioctl(0,TIOCSTI, (char*)connectionName.c_str()+i);
 		}
 		kill(getpid(), SIGINT);
 	}
@@ -86,23 +86,23 @@ std::string Window::getSearchText()
 
 void Window::loadConnections( bool byGroup )
 {
-	commands.clear();
+	connections.clear();
     if ( byGroup == true ) {
         searchText.clear();
-        commands = Resources::Instance()->getSSHDatabase()->getConnectionsByGroup( groups.at( selectedGroup ) );
+        connections = Resources::Instance()->getSSHDatabase()->getConnectionsByGroup( groups.at( selectedGroup ) );
     } else {
-        commands = Resources::Instance()->getSSHDatabase()->getConnections( searchText );
+        connections = Resources::Instance()->getSSHDatabase()->getConnections( searchText );
     }
 
 	groups = Resources::Instance()->getSSHDatabase()->getGroups();
-	if ( commands.empty() == false ) {
+	if ( connections.empty() == false ) {
         Connection *oldConnection = curConnection;
-        // check if our old command is in this list
+        // check if our old connection is in this list
         selectedPosition = 0;
-		curConnection = commands[ 0 ];
-        for ( std::vector< Connection* >::iterator it = commands.begin(); it != commands.end(); ++it ) {
+		curConnection = connections[ 0 ];
+        for ( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
             if ( oldConnection == *it ) {
-                selectedPosition = it - commands.begin();
+                selectedPosition = it - connections.begin();
                 curConnection = *it;
             }
         }
@@ -127,10 +127,10 @@ void Window::handleInput( int c )
 {
 	switch ( c ) {
 		case KEY_DOWN:
-			if ( selectedPosition < commands.size() - 1 ) {
+			if ( selectedPosition < connections.size() - 1 ) {
 				selectedPosition++;
-				if ( commands.size() > selectedPosition ) {
-					curConnection = commands.at( selectedPosition );
+				if ( connections.size() > selectedPosition ) {
+					curConnection = connections.at( selectedPosition );
 				} else {
 					curConnection = NULL;
 				}
@@ -147,8 +147,8 @@ void Window::handleInput( int c )
                 selectedGroup = groups.size()-1;
             }
             loadConnections(selectedGroup > 0);
-            if ( selectedPosition == commands.size() && commands.size() > 0 ) {
-                selectedPosition = commands.size()-1;
+            if ( selectedPosition == connections.size() && connections.size() > 0 ) {
+                selectedPosition = connections.size()-1;
             }
 		break;
 		case KEY_ENTER:
@@ -170,8 +170,8 @@ void Window::handleInput( int c )
 		case KEY_UP:
 			if ( selectedPosition > 0 ) {
 				selectedPosition--;
-				if ( commands.size() > selectedPosition ) {
-					curConnection = commands.at( selectedPosition );
+				if ( connections.size() > selectedPosition ) {
+					curConnection = connections.at( selectedPosition );
 				} else {
 					curConnection = NULL;
 				}
@@ -195,7 +195,7 @@ void Window::draw()
 {
 	wclear( searchWindow );
 	wclear( helpWindow );
-	wclear( commandWindow );
+	wclear( connectionWindow );
 	wclear( groupWindow );
 
     // make colors
@@ -203,7 +203,7 @@ void Window::draw()
 	init_pair(2,COLOR_BLUE, COLOR_BLACK);
 
 	// draw help
-	mvwprintw( helpWindow, 1, 1, "Ctrl+T - %s", "Add new command" );
+	mvwprintw( helpWindow, 1, 1, "Ctrl+T - %s", "Add new connection" );
 
     // draw groups
     size_t g = 0;
@@ -217,26 +217,26 @@ void Window::draw()
         gpos += (*it).length()+1;
     }
 
-	// draw commands
-	unsigned int commandIndex = 0;
-	for( std::vector< Connection* >::iterator it = commands.begin(); it != commands.end(); ++it ) {
-		// draw background if this is our selected command
-		if ( commandIndex == selectedPosition ) {
-            wattron( commandWindow, COLOR_PAIR(1) );
+	// draw connections
+	unsigned int connectionIndex = 0;
+	for( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
+		// draw background if this is our selected connection
+		if ( connectionIndex == selectedPosition ) {
+            wattron( connectionWindow, COLOR_PAIR(1) );
         }
 
-        mvwprintw( commandWindow, 1 + commandIndex++, 1, "%s",(*it)->getName().c_str() );
-        wattroff( commandWindow, COLOR_PAIR(1) );
+        mvwprintw( connectionWindow, 1 + connectionIndex++, 1, "%s",(*it)->getName().c_str() );
+        wattroff( connectionWindow, COLOR_PAIR(1) );
 	}
 
 	// draw search box
 	mvwprintw( searchWindow, 1, 1, "Search: %s", getSearchText().c_str() );
 
 	box( searchWindow, 0, 0 );
-	box( commandWindow, 0, 0 );
+	box( connectionWindow, 0, 0 );
 	box( helpWindow, 0, 0 );
 	box( groupWindow, 0, 0 );
-	wnoutrefresh( commandWindow );
+	wnoutrefresh( connectionWindow );
 	wnoutrefresh( helpWindow );
 	wnoutrefresh( groupWindow );
 	wnoutrefresh( searchWindow );

@@ -24,7 +24,7 @@
 
 #define Y_OFFSET_SEARCH 0
 #define Y_OFFSET_HELP 1
-#define Y_OFFSET_COMMANDS 2
+#define Y_OFFSET_CONNECTIONS 2
 
 #define K_CTRL_D 4
 #define K_CTRL_T 20
@@ -56,12 +56,12 @@ class Window
 		std::string getSearchText();
 		void appendSearchText( char *add );
 		void popSearchText();
-		std::vector< Connection* > commands;
+		std::vector< Connection* > connections;
 		std::vector< std::string > groups;
 		Connection *curConnection;
 		WINDOW *helpWindow;
 		WINDOW *searchWindow;
-		WINDOW *commandWindow;
+		WINDOW *connectionWindow;
 		WINDOW *groupWindow;
 };
 

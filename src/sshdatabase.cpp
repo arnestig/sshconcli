@@ -32,9 +32,9 @@ bool sortConnections(Connection *l, Connection *r) {
     return (l->getName()<r->getName());
 }
 
-/** END command sorter **/
+/** END connection sorter **/
 
-/** BEGIN COMMAND **/
+/** BEGIN CONNECTION **/
 Connection::Connection( std::string name )
     :   name( name )
 {
@@ -64,10 +64,10 @@ void Connection::setGroup( std::string group )
     this->group = group;
 }
 
-/** END COMMAND **/
+/** END CONNECTION **/
 
 
-/** BEGIN COMMANDDATABASE **/
+/** BEGIN SSHDATABASE **/
 
 SSHDatabase::SSHDatabase()
 {
@@ -119,7 +119,7 @@ void SSHDatabase::popNewConnectionText()
 
 void SSHDatabase::loadDatabase()
 {
-    // delete our previous command database
+    // delete our previous connection database
     for ( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
         delete (*it);
     }
@@ -157,7 +157,7 @@ void SSHDatabase::writeDatabase()
 
 bool SSHDatabase::addConnection( std::string name )
 {
-    // first check if this command already exist in our database
+    // first check if this connection already exist in our database
     if ( getConnectionByName( name ) == NULL ) {
         connections.push_back( new Connection( name ) );
         writeDatabase();
@@ -266,4 +266,4 @@ std::vector< Connection* > SSHDatabase::getConnections( std::string searchText )
 	return retval;
 }
 
-/** END COMMANDDATABASE **/
+/** END SSHDATABASE **/
