@@ -30,42 +30,42 @@
 #include <sstream>
 
 Window::Window()
-	:	selectedPosition( 0 ),
-		searchText( "" )
+    :	selectedPosition( 0 ),
+      searchText( "" )
 {
-	initscr();
-	noecho();
-	start_color();
+    initscr();
+    noecho();
+    start_color();
 }
 
 Window::~Window()
 {
-	delwin( helpWindow );
-	delwin( searchWindow );
-	delwin( connectionWindow );
-	delwin( groupWindow );
-	refresh();
-	endwin();
+    delwin( helpWindow );
+    delwin( searchWindow );
+    delwin( connectionWindow );
+    delwin( groupWindow );
+    refresh();
+    endwin();
 }
 
 void Window::init()
 {
-	loadConnections();
-	int y,x;
-	getmaxyx( stdscr, y, x );
+    loadConnections();
+    int y,x;
+    getmaxyx( stdscr, y, x );
 
-	// help window
-	helpWindow = newwin( 3, x/2 - 2, 1, x/2+1 );
+    // help window
+    helpWindow = newwin( 3, x/2 - 2, 1, x/2+1 );
 
-	// search window
-	searchWindow = newwin( 3, x/2 - 1, 1, 1 );
-	keypad( searchWindow, true );
+    // search window
+    searchWindow = newwin( 3, x/2 - 1, 1, 1 );
+    keypad( searchWindow, true );
 
-	// connection window
-	connectionWindow = newwin( y-7, x - 2, 7, 1 );
+    // connection window
+    connectionWindow = newwin( y-7, x - 2, 7, 1 );
 
-	// group window
-	groupWindow = newwin( 3, x - 2, 4, 1 );
+    // group window
+    groupWindow = newwin( 3, x - 2, 4, 1 );
 
 }
 
@@ -77,12 +77,12 @@ void Window::runConnection()
 
 std::string Window::getSearchText()
 {
-	return searchText;
+    return searchText;
 }
 
 void Window::loadConnections( bool byGroup )
 {
-	connections.clear();
+    connections.clear();
     if ( byGroup == true ) {
         searchText.clear();
         connections = Resources::Instance()->getSSHDatabase()->getConnectionsByGroup( groups.at( selectedGroup ) );
@@ -90,116 +90,116 @@ void Window::loadConnections( bool byGroup )
         connections = Resources::Instance()->getSSHDatabase()->getConnections( searchText );
     }
 
-	groups = Resources::Instance()->getSSHDatabase()->getGroups();
-	if ( connections.empty() == false ) {
+    groups = Resources::Instance()->getSSHDatabase()->getGroups();
+    if ( connections.empty() == false ) {
         Connection *oldConnection = curConnection;
         // check if our old connection is in this list
         selectedPosition = 0;
-		curConnection = connections[ 0 ];
+        curConnection = connections[ 0 ];
         for ( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
             if ( oldConnection == *it ) {
                 selectedPosition = it - connections.begin();
                 curConnection = *it;
             }
         }
-	} else {
-		curConnection = NULL;
-	}
+    } else {
+        curConnection = NULL;
+    }
 }
 
 void Window::appendSearchText( char *add )
 {
-	searchText.append( add );
+    searchText.append( add );
 }
 
 void Window::popSearchText()
 {
-	if ( searchText.length() > 0 ) {
-		searchText.erase( searchText.end() - 1 );
-	}
+    if ( searchText.length() > 0 ) {
+        searchText.erase( searchText.end() - 1 );
+    }
 }
 
 void Window::handleInput( int c )
 {
-	switch ( c ) {
-		case KEY_DOWN:
-			if ( selectedPosition < connections.size() - 1 ) {
-				selectedPosition++;
-				if ( connections.size() > selectedPosition ) {
-					curConnection = connections.at( selectedPosition );
-				} else {
-					curConnection = NULL;
-				}
-			}
-		break;
-		case K_CTRL_T:
-			Resources::Instance()->getSSHDatabase()->addConnectionInteractive();
-            loadConnections(selectedGroup > 0);
-		break;
-		case K_CTRL_D:
-			curConnection = Resources::Instance()->getSSHDatabase()->removeConnection( curConnection );
-            groups = Resources::Instance()->getSSHDatabase()->getGroups();
-            if ( selectedGroup > groups.size()-1 ) {
-                selectedGroup = groups.size()-1;
+    switch ( c ) {
+    case KEY_DOWN:
+        if ( selectedPosition < connections.size() - 1 ) {
+            selectedPosition++;
+            if ( connections.size() > selectedPosition ) {
+                curConnection = connections.at( selectedPosition );
+            } else {
+                curConnection = NULL;
             }
-            loadConnections(selectedGroup > 0);
-            if ( selectedPosition == connections.size() && connections.size() > 0 ) {
-                selectedPosition = connections.size()-1;
-            }
-		break;
-		case KEY_ENTER:
-		case K_ENTER:
-			runConnection();
-		break;
-        case KEY_LEFT:
-            if ( selectedGroup > 0 ) {
-                selectedGroup--;
-            }
-            loadConnections(true);
+        }
         break;
-        case KEY_RIGHT:
-            if ( selectedGroup+1 < groups.size() ) {
-                selectedGroup++;
-            }
-            loadConnections(true);
+    case K_CTRL_T:
+        Resources::Instance()->getSSHDatabase()->addConnectionInteractive();
+        loadConnections(selectedGroup > 0);
         break;
-		case KEY_UP:
-			if ( selectedPosition > 0 ) {
-				selectedPosition--;
-				if ( connections.size() > selectedPosition ) {
-					curConnection = connections.at( selectedPosition );
-				} else {
-					curConnection = NULL;
-				}
-			}
-		break;
-		case KEY_BACKSPACE:
-		case K_BACKSPACE:
-			popSearchText();
-			loadConnections();
-		break;
-		default:
-			if ( c > 31 && c < 127 ) {
-				appendSearchText( (char*)(&c) );
-				loadConnections();
-			}
-		break;
-	}
+    case K_CTRL_D:
+        curConnection = Resources::Instance()->getSSHDatabase()->removeConnection( curConnection );
+        groups = Resources::Instance()->getSSHDatabase()->getGroups();
+        if ( selectedGroup > groups.size()-1 ) {
+            selectedGroup = groups.size()-1;
+        }
+        loadConnections(selectedGroup > 0);
+        if ( selectedPosition == connections.size() && connections.size() > 0 ) {
+            selectedPosition = connections.size()-1;
+        }
+        break;
+    case KEY_ENTER:
+    case K_ENTER:
+        runConnection();
+        break;
+    case KEY_LEFT:
+        if ( selectedGroup > 0 ) {
+            selectedGroup--;
+        }
+        loadConnections(true);
+        break;
+    case KEY_RIGHT:
+        if ( selectedGroup+1 < groups.size() ) {
+            selectedGroup++;
+        }
+        loadConnections(true);
+        break;
+    case KEY_UP:
+        if ( selectedPosition > 0 ) {
+            selectedPosition--;
+            if ( connections.size() > selectedPosition ) {
+                curConnection = connections.at( selectedPosition );
+            } else {
+                curConnection = NULL;
+            }
+        }
+        break;
+    case KEY_BACKSPACE:
+    case K_BACKSPACE:
+        popSearchText();
+        loadConnections();
+        break;
+    default:
+        if ( c > 31 && c < 127 ) {
+            appendSearchText( (char*)(&c) );
+            loadConnections();
+        }
+        break;
+    }
 }
 
 void Window::draw()
 {
-	wclear( searchWindow );
-	wclear( helpWindow );
-	wclear( connectionWindow );
-	wclear( groupWindow );
+    wclear( searchWindow );
+    wclear( helpWindow );
+    wclear( connectionWindow );
+    wclear( groupWindow );
 
     // make colors
-	init_pair(1,COLOR_YELLOW, COLOR_BLACK);
-	init_pair(2,COLOR_BLUE, COLOR_BLACK);
+    init_pair(1,COLOR_YELLOW, COLOR_BLACK);
+    init_pair(2,COLOR_BLUE, COLOR_BLACK);
 
-	// draw help
-	mvwprintw( helpWindow, 1, 1, "Ctrl+T - %s", "Add new connection" );
+    // draw help
+    mvwprintw( helpWindow, 1, 1, "Ctrl+T - %s", "Add new connection" );
 
     // draw groups
     size_t g = 0;
@@ -213,11 +213,11 @@ void Window::draw()
         gpos += (*it).length()+1;
     }
 
-	// draw connections
-	unsigned int connectionIndex = 0;
-	for( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
-		// draw background if this is our selected connection
-		if ( connectionIndex == selectedPosition ) {
+    // draw connections
+    unsigned int connectionIndex = 0;
+    for( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
+        // draw background if this is our selected connection
+        if ( connectionIndex == selectedPosition ) {
             wattron( connectionWindow, COLOR_PAIR(1) );
         }
 
@@ -227,21 +227,21 @@ void Window::draw()
         mvwprintw( connectionWindow, 1 + connectionIndex, 61, "%s",(*it)->getUser().c_str() );
         wattroff( connectionWindow, COLOR_PAIR(1) );
         connectionIndex++;
-	}
+    }
 
-	// draw search box
-	mvwprintw( searchWindow, 1, 1, "Search: %s", getSearchText().c_str() );
+    // draw search box
+    mvwprintw( searchWindow, 1, 1, "Search: %s", getSearchText().c_str() );
 
-	box( searchWindow, 0, 0 );
-	box( connectionWindow, 0, 0 );
-	box( helpWindow, 0, 0 );
-	box( groupWindow, 0, 0 );
-	wnoutrefresh( connectionWindow );
-	wnoutrefresh( helpWindow );
-	wnoutrefresh( groupWindow );
-	wnoutrefresh( searchWindow );
-	doupdate();
-	int c = wgetch(searchWindow);
-	handleInput( c );
+    box( searchWindow, 0, 0 );
+    box( connectionWindow, 0, 0 );
+    box( helpWindow, 0, 0 );
+    box( groupWindow, 0, 0 );
+    wnoutrefresh( connectionWindow );
+    wnoutrefresh( helpWindow );
+    wnoutrefresh( groupWindow );
+    wnoutrefresh( searchWindow );
+    doupdate();
+    int c = wgetch(searchWindow);
+    handleInput( c );
 }
 

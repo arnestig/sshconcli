@@ -38,31 +38,31 @@
 
 class Window
 {
-    public:
-        Window();
-        ~Window();
+public:
+    Window();
+    ~Window();
 
-		void init();
-		void draw();
+    void init();
+    void draw();
 
-    private:
-		unsigned int selectedPosition;
-		unsigned int selectedGroup;
-		std::string searchText;
+private:
+    unsigned int selectedPosition;
+    unsigned int selectedGroup;
+    std::string searchText;
 
-		void loadConnections( bool byGroup = false );
-		void runConnection();
-		void handleInput( int c );
-		std::string getSearchText();
-		void appendSearchText( char *add );
-		void popSearchText();
-		std::vector< Connection* > connections;
-		std::vector< std::string > groups;
-		Connection *curConnection;
-		WINDOW *helpWindow;
-		WINDOW *searchWindow;
-		WINDOW *connectionWindow;
-		WINDOW *groupWindow;
+    void loadConnections( bool byGroup = false );
+    void runConnection();
+    void handleInput( int c );
+    std::string getSearchText();
+    void appendSearchText( char *add );
+    void popSearchText();
+    std::vector< Connection* > connections;
+    std::vector< std::string > groups;
+    Connection *curConnection;
+    WINDOW *helpWindow;
+    WINDOW *searchWindow;
+    WINDOW *connectionWindow;
+    WINDOW *groupWindow;
 };
 
 #endif

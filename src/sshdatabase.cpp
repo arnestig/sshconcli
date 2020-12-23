@@ -30,7 +30,8 @@
 
 /** Connection sorter **/
 
-bool sortConnections(Connection *l, Connection *r) {
+bool sortConnections(Connection *l, Connection *r)
+{
     return (l->getName()<r->getName());
 }
 
@@ -149,38 +150,38 @@ void SSHDatabase::setRunOnExit(Connection *conn)
 
 bool SSHDatabase::handleConnectionInput( int c )
 {
-	switch ( c ) {
-		case KEY_ENTER:
-		case K_ENTER:
-			// addConnection( newConnectionText );
-			newConnectionText.clear();
-			return false;
-		break;
-		case KEY_BACKSPACE:
-		case K_BACKSPACE:
-			popNewConnectionText();
-			return true;
-		break;
-		default:
-			if ( c > 31 && c < 127 ) {
-				appendNewConnectionText( (char*)(&c) );
-				return true;
-			}
-		break;
-	}
+    switch ( c ) {
+    case KEY_ENTER:
+    case K_ENTER:
+        // addConnection( newConnectionText );
+        newConnectionText.clear();
+        return false;
+        break;
+    case KEY_BACKSPACE:
+    case K_BACKSPACE:
+        popNewConnectionText();
+        return true;
+        break;
+    default:
+        if ( c > 31 && c < 127 ) {
+            appendNewConnectionText( (char*)(&c) );
+            return true;
+        }
+        break;
+    }
     return false;
 }
 
 void SSHDatabase::appendNewConnectionText( char *add )
 {
-	newConnectionText.append( add );
+    newConnectionText.append( add );
 }
 
 void SSHDatabase::popNewConnectionText()
 {
-	if ( newConnectionText.length() > 0 ) {
-		newConnectionText.erase( newConnectionText.end() - 1 );
-	}
+    if ( newConnectionText.length() > 0 ) {
+        newConnectionText.erase( newConnectionText.end() - 1 );
+    }
 }
 
 void SSHDatabase::loadDatabase()
@@ -191,15 +192,15 @@ void SSHDatabase::loadDatabase()
     }
     connections.clear();
 
-	char *home_path = getenv( "HOME" );
-	char database_path[256];
-	sprintf(database_path,"%s/.scc/connections",home_path);
-	std::ifstream ifs;
-	ifs.open( database_path, std::ifstream::in );
-	if ( ifs.is_open() == true ) {
-		std::string line;
+    char *home_path = getenv( "HOME" );
+    char database_path[256];
+    sprintf(database_path,"%s/.scc/connections",home_path);
+    std::ifstream ifs;
+    ifs.open( database_path, std::ifstream::in );
+    if ( ifs.is_open() == true ) {
+        std::string line;
 
-		while (std::getline(ifs, line)) {
+        while (std::getline(ifs, line)) {
             char data[5][256];
             char *token;
             const char del[2] = { 0x1f, 0 };
@@ -215,24 +216,24 @@ void SSHDatabase::loadDatabase()
             if ( i == 5 ) {
                 addConnection( data[0], data[1], data[2], data[3], data[4] );
             }
-		}
-	}
-	ifs.close();
+        }
+    }
+    ifs.close();
 }
 
 void SSHDatabase::writeDatabase()
 {
-	char *home_path = getenv( "HOME" );
-	char database_path[256];
-	sprintf(database_path,"%s/.scc/connections",home_path);
-	std::ofstream ofs;
-	ofs.open( database_path, std::ifstream::out );
-	if ( ofs.is_open() == true ) {
-		for ( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
-			ofs << (*it)->getName() << char(0x1f) << (*it)->getHostname() << char(0x1f) << (*it)->getGroup() << char(0x1f) << (*it)->getUser() << char(0x1f) << (*it)->getPassword() << std::endl;
-		}
-	}
-	ofs.close();
+    char *home_path = getenv( "HOME" );
+    char database_path[256];
+    sprintf(database_path,"%s/.scc/connections",home_path);
+    std::ofstream ofs;
+    ofs.open( database_path, std::ifstream::out );
+    if ( ofs.is_open() == true ) {
+        for ( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
+            ofs << (*it)->getName() << char(0x1f) << (*it)->getHostname() << char(0x1f) << (*it)->getGroup() << char(0x1f) << (*it)->getUser() << char(0x1f) << (*it)->getPassword() << std::endl;
+        }
+    }
+    ofs.close();
 }
 
 bool SSHDatabase::addConnection( std::string name, std::string hostname, std::string group, std::string user, std::string password )
@@ -267,26 +268,26 @@ Connection* SSHDatabase::removeConnection( Connection *connection )
 
 bool SSHDatabase::addConnectionInteractive()
 {
-	int height = 3;
-	int width = 100;
-	int y,x;
-	getmaxyx( stdscr, y, x );
-	WINDOW *newConnection = newwin( height,width,(y-height)/2,(x-width)/2 );
-	box( newConnection, 0, 0 );
-	mvwprintw( newConnection, 1, 1, "Add new connection: %s",newConnectionText.c_str() );
-	int c = wgetch( newConnection );
-	while ( handleConnectionInput( c ) == true ) {
-		wclear( newConnection );
-		box( newConnection, 0, 0 );
-		mvwprintw( newConnection, 1, 1, "Add new connection: %s",newConnectionText.c_str() );
-		c = wgetch( newConnection );
-	}
+    int height = 3;
+    int width = 100;
+    int y,x;
+    getmaxyx( stdscr, y, x );
+    WINDOW *newConnection = newwin( height,width,(y-height)/2,(x-width)/2 );
+    box( newConnection, 0, 0 );
+    mvwprintw( newConnection, 1, 1, "Add new connection: %s",newConnectionText.c_str() );
+    int c = wgetch( newConnection );
+    while ( handleConnectionInput( c ) == true ) {
+        wclear( newConnection );
+        box( newConnection, 0, 0 );
+        mvwprintw( newConnection, 1, 1, "Add new connection: %s",newConnectionText.c_str() );
+        c = wgetch( newConnection );
+    }
 
-	if ( newConnectionText.empty() == false ) {
-		return true;
-	} else {
-		return false;
-	}
+    if ( newConnectionText.empty() == false ) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 std::vector< std::string > SSHDatabase::getGroups()
@@ -304,18 +305,18 @@ std::vector< std::string > SSHDatabase::getGroups()
 
 std::vector< Connection* > SSHDatabase::getConnectionsByGroup( std::string group )
 {
-	std::vector< Connection* > retval;
-	if ( group != "*" ) {
-		for ( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
-			if ( (*it)->getGroup() == group ) {
-				retval.push_back( (*it) );
-			}
-		}
-	} else {
+    std::vector< Connection* > retval;
+    if ( group != "*" ) {
+        for ( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
+            if ( (*it)->getGroup() == group ) {
+                retval.push_back( (*it) );
+            }
+        }
+    } else {
         retval = connections;
-	}
+    }
     std::sort( retval.begin(), retval.end(), &sortConnections );
-	return retval;
+    return retval;
 
 }
 
@@ -332,8 +333,8 @@ Connection* SSHDatabase::getConnectionByName( std::string searchText )
 
 std::vector< Connection* > SSHDatabase::getConnections( std::string searchText )
 {
-	std::vector< Connection* > retval;
-	if ( searchText.empty() == false ) {
+    std::vector< Connection* > retval;
+    if ( searchText.empty() == false ) {
         for ( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
             if ( toUpperString((*it)->getName()).find(toUpperString(searchText)) != std::string::npos ) {
                 retval.push_back( (*it) );
@@ -345,11 +346,11 @@ std::vector< Connection* > SSHDatabase::getConnections( std::string searchText )
                 retval.push_back( (*it) );
             }
         }
-	} else {
-		retval = connections;
-	}
+    } else {
+        retval = connections;
+    }
     std::sort( retval.begin(), retval.end(), &sortConnections );
-	return retval;
+    return retval;
 }
 
 /** END SSHDATABASE **/

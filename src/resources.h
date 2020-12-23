@@ -27,21 +27,21 @@
 
 class Resources
 {
-    public:
-        static Resources* Instance();
-        static void DestroyInstance();
+public:
+    static Resources* Instance();
+    static void DestroyInstance();
 
-        SSHDatabase* getSSHDatabase();
-        Window* getWindow();
+    SSHDatabase* getSSHDatabase();
+    Window* getWindow();
 
-    private:
-        static Resources* instance;
-        Resources();
-        ~Resources();
-        Resources( Resources const& ) {};
+private:
+    static Resources* instance;
+    Resources();
+    ~Resources();
+    Resources( Resources const& ) {};
 
-        SSHDatabase *sshDatabase;
-        Window *window;
+    SSHDatabase *sshDatabase;
+    Window *window;
 };
 
 #endif

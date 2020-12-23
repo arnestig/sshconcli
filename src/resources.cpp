@@ -25,14 +25,14 @@ Resources* Resources::instance = NULL;
 
 Resources::Resources()
     :   sshDatabase( NULL ),
-    	window( NULL )
+        window( NULL )
 {
 }
 
 Resources::~Resources()
 {
     delete sshDatabase;
-	delete window;
+    delete window;
 }
 
 void Resources::DestroyInstance()

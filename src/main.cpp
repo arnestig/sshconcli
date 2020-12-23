@@ -31,27 +31,27 @@
 
 void handle_signal( int signal )
 {
-	if ( signal == SIGINT ) {
+    if ( signal == SIGINT ) {
         // Check if we should run an SSH connection at exit
         std::string exec;
         if ( Resources::Instance()->getSSHDatabase()->getRunOnExit() != NULL ) {
             exec = Resources::Instance()->getSSHDatabase()->getRunOnExit()->getCommand();
         }
-		Resources::Instance()->DestroyInstance();
+        Resources::Instance()->DestroyInstance();
         system(exec.c_str());
-		exit(0);
-	}
+        exit(0);
+    }
 }
 
 int main( int argc, char *argv[] )
 {
-	// make sure we have a ~/.ch/ structure
-	char *home_path = getenv( "HOME" );
-	char data_path[256];
-	sprintf(data_path,"%s/.scc",home_path);
-	mkdir( data_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH );
-	// register our signal handler
-	signal( SIGINT, handle_signal );
+    // make sure we have a ~/.ch/ structure
+    char *home_path = getenv( "HOME" );
+    char data_path[256];
+    sprintf(data_path,"%s/.scc",home_path);
+    mkdir( data_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH );
+    // register our signal handler
+    signal( SIGINT, handle_signal );
 
     Resources::Instance()->getWindow()->init();
 
