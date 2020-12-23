@@ -27,6 +27,7 @@
 #include "window.h"
 #include "resources.h"
 #include <string.h>
+#include <sstream>
 
 Window::Window()
 	:	selectedPosition( 0 ),
@@ -70,13 +71,8 @@ void Window::init()
 
 void Window::runConnection()
 {
-	if ( curConnection != NULL ) {
-		std::string connectionName = curConnection->getName();
-		for( size_t i = 0; i < connectionName.length(); i++ ) {
-			ioctl(0,TIOCSTI, (char*)connectionName.c_str()+i);
-		}
-		kill(getpid(), SIGINT);
-	}
+    Resources::Instance()->getSSHDatabase()->setRunOnExit( curConnection );
+    kill(getpid(), SIGINT);
 }
 
 std::string Window::getSearchText()
@@ -225,8 +221,12 @@ void Window::draw()
             wattron( connectionWindow, COLOR_PAIR(1) );
         }
 
-        mvwprintw( connectionWindow, 1 + connectionIndex++, 1, "%s",(*it)->getName().c_str() );
+        mvwprintw( connectionWindow, 1 + connectionIndex, 1, "%s",(*it)->getName().c_str() );
+        mvwprintw( connectionWindow, 1 + connectionIndex, 21, "%s",(*it)->getHostname().c_str() );
+        mvwprintw( connectionWindow, 1 + connectionIndex, 41, "%s",(*it)->getGroup().c_str() );
+        mvwprintw( connectionWindow, 1 + connectionIndex, 61, "%s",(*it)->getUser().c_str() );
         wattroff( connectionWindow, COLOR_PAIR(1) );
+        connectionIndex++;
 	}
 
 	// draw search box

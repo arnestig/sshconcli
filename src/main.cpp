@@ -26,12 +26,19 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <sstream>
+#include <iostream>
 #include "resources.h"
 
 void handle_signal( int signal )
 {
 	if ( signal == SIGINT ) {
+        // Check if we should run an SSH connection at exit
+        std::string exec;
+        if ( Resources::Instance()->getSSHDatabase()->getRunOnExit() != NULL ) {
+            exec = Resources::Instance()->getSSHDatabase()->getRunOnExit()->getCommand();
+        }
 		Resources::Instance()->DestroyInstance();
+        system(exec.c_str());
 		exit(0);
 	}
 }

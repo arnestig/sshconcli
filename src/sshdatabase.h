@@ -29,17 +29,29 @@
 class Connection
 {
     public:
-        Connection( std::string name );
+        Connection( std::string name, std::string hostname, std::string group, std::string user, std::string password );
         ~Connection();
 
-		std::string getName() const;
+        std::string getName() const;
+        std::string getHostname() const;
         std::string getGroup() const;
+        std::string getUser() const;
+        std::string getPassword() const;
+
 		void setName( std::string name );
+		void setHostname( std::string hostname );
 		void setGroup( std::string group );
+		void setUser( std::string user );
+		void setPassword( std::string password );
+
+        std::string getCommand();
 
     private:
         std::string name;
+        std::string hostname;
         std::string group;
+        std::string user;
+        std::string password;
 };
 
 class SSHDatabase
@@ -49,19 +61,22 @@ class SSHDatabase
         ~SSHDatabase();
 
 		bool addConnectionInteractive();
-		bool addConnection( std::string name );
+        bool addConnection( std::string name, std::string hostname, std::string group, std::string user, std::string password );
         Connection* removeConnection( Connection *connection );
         void loadDatabase();
 		std::vector< Connection* > getConnections( std::string searchText = "" );
         Connection* getConnectionByName( std::string searchText );
 		std::vector< Connection* > getConnectionsByGroup( std::string group );
         std::vector< std::string > getGroups();
+        Connection* getRunOnExit();
+        void setRunOnExit(Connection *conn);
 
     private:
 		void appendNewConnectionText( char *add );
 		void popNewConnectionText();
 		bool handleConnectionInput( int c );
 		void writeDatabase();
+        Connection *runOnExit;
 
 		std::string newConnectionText;
         std::vector< Connection* > connections;

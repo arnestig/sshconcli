@@ -21,8 +21,10 @@
 
 #include "sshdatabase.h"
 #include "resources.h"
+#include <string.h>
 #include <stdlib.h>
 #include <algorithm>
+#include <sstream>
 #include <fstream>
 
 
@@ -32,11 +34,24 @@ bool sortConnections(Connection *l, Connection *r) {
     return (l->getName()<r->getName());
 }
 
+std::string toUpperString( std::string s )
+{
+    std::stringstream ss;
+    for( std::string::iterator it = s.begin(); it != s.end(); ++it ) {
+        ss << char(toupper((*it)));
+    }
+    return ss.str();
+}
+
 /** END connection sorter **/
 
 /** BEGIN CONNECTION **/
-Connection::Connection( std::string name )
-    :   name( name )
+Connection::Connection( std::string name, std::string hostname, std::string group, std::string user, std::string password )
+    :   name( name ),
+        hostname( hostname),
+        group( group ),
+        user( user ),
+        password( password )
 {
 }
 
@@ -49,9 +64,24 @@ std::string Connection::getName() const
     return name;
 }
 
+std::string Connection::getHostname() const
+{
+    return hostname;
+}
+
 std::string Connection::getGroup() const
 {
     return group;
+}
+
+std::string Connection::getUser() const
+{
+    return user;
+}
+
+std::string Connection::getPassword() const
+{
+    return password;
 }
 
 void Connection::setName( std::string name )
@@ -59,9 +89,34 @@ void Connection::setName( std::string name )
     this->name = name;
 }
 
+void Connection::setHostname( std::string hostname )
+{
+    this->hostname = hostname;
+}
+
 void Connection::setGroup( std::string group )
 {
     this->group = group;
+}
+
+void Connection::setUser( std::string user )
+{
+    this->user = user;
+}
+
+void Connection::setPassword( std::string password )
+{
+    this->password = password;
+}
+
+std::string Connection::getCommand()
+{
+    std::stringstream ss;
+    if ( getPassword().empty() == false ) {
+        ss << "sshpass -p " << getPassword() << " ";
+    }
+    ss << "ssh " << getUser() << "@" << getHostname();
+    return ss.str();
 }
 
 /** END CONNECTION **/
@@ -70,6 +125,7 @@ void Connection::setGroup( std::string group )
 /** BEGIN SSHDATABASE **/
 
 SSHDatabase::SSHDatabase()
+    : runOnExit( NULL )
 {
 }
 
@@ -81,12 +137,22 @@ SSHDatabase::~SSHDatabase()
     connections.clear();
 }
 
+Connection* SSHDatabase::getRunOnExit()
+{
+    return runOnExit;
+}
+
+void SSHDatabase::setRunOnExit(Connection *conn)
+{
+    runOnExit = conn;
+}
+
 bool SSHDatabase::handleConnectionInput( int c )
 {
 	switch ( c ) {
 		case KEY_ENTER:
 		case K_ENTER:
-			addConnection( newConnectionText );
+			// addConnection( newConnectionText );
 			newConnectionText.clear();
 			return false;
 		break;
@@ -134,7 +200,21 @@ void SSHDatabase::loadDatabase()
 		std::string line;
 
 		while (std::getline(ifs, line)) {
-			addConnection( line );
+            char data[5][256];
+            char *token;
+            const char del[2] = { 0x1f, 0 };
+            int i = 0;
+            token = strtok((char *)line.c_str(), del);
+            strcpy(data[i++],token);
+            while ( token != NULL ) {
+                token = strtok(NULL, del);
+                if ( token != NULL ) {
+                    strcpy(data[i++],token);
+                }
+            }
+            if ( i == 5 ) {
+                addConnection( data[0], data[1], data[2], data[3], data[4] );
+            }
 		}
 	}
 	ifs.close();
@@ -149,17 +229,17 @@ void SSHDatabase::writeDatabase()
 	ofs.open( database_path, std::ifstream::out );
 	if ( ofs.is_open() == true ) {
 		for ( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
-			ofs << (*it)->getName() << std::endl;
+			ofs << (*it)->getName() << char(0x1f) << (*it)->getHostname() << char(0x1f) << (*it)->getGroup() << char(0x1f) << (*it)->getUser() << char(0x1f) << (*it)->getPassword() << std::endl;
 		}
 	}
 	ofs.close();
 }
 
-bool SSHDatabase::addConnection( std::string name )
+bool SSHDatabase::addConnection( std::string name, std::string hostname, std::string group, std::string user, std::string password )
 {
     // first check if this connection already exist in our database
     if ( getConnectionByName( name ) == NULL ) {
-        connections.push_back( new Connection( name ) );
+        connections.push_back( new Connection( name, hostname, group, user, password ) );
         writeDatabase();
         return true;
     }
@@ -254,11 +334,17 @@ std::vector< Connection* > SSHDatabase::getConnections( std::string searchText )
 {
 	std::vector< Connection* > retval;
 	if ( searchText.empty() == false ) {
-		for ( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
-			if ( (*it)->getName().find( searchText ) != std::string::npos ) {
-				retval.push_back( (*it) );
-			}
-		}
+        for ( std::vector< Connection* >::iterator it = connections.begin(); it != connections.end(); ++it ) {
+            if ( toUpperString((*it)->getName()).find(toUpperString(searchText)) != std::string::npos ) {
+                retval.push_back( (*it) );
+            } else if ( toUpperString((*it)->getHostname()).find(toUpperString(searchText)) != std::string::npos ) {
+                retval.push_back( (*it) );
+            } else if ( toUpperString((*it)->getGroup()).find(toUpperString(searchText)) != std::string::npos ) {
+                retval.push_back( (*it) );
+            } else if ( toUpperString((*it)->getUser()).find(toUpperString(searchText)) != std::string::npos ) {
+                retval.push_back( (*it) );
+            }
+        }
 	} else {
 		retval = connections;
 	}
