@@ -56,6 +56,16 @@ Connection::Connection( std::string name, std::string hostname, std::string grou
 {
 }
 
+Connection::Connection( Connection *copy )
+    :   name( copy->name ),
+        hostname( copy->hostname),
+        group( copy->group ),
+        user( copy->user ),
+        password( copy->password )
+{
+}
+
+
 Connection::~Connection()
 {
 }
@@ -148,42 +158,6 @@ void SSHDatabase::setRunOnExit(Connection *conn)
     runOnExit = conn;
 }
 
-bool SSHDatabase::handleConnectionInput( int c )
-{
-    switch ( c ) {
-    case KEY_ENTER:
-    case K_ENTER:
-        // addConnection( newConnectionText );
-        newConnectionText.clear();
-        return false;
-        break;
-    case KEY_BACKSPACE:
-    case K_BACKSPACE:
-        popNewConnectionText();
-        return true;
-        break;
-    default:
-        if ( c > 31 && c < 127 ) {
-            appendNewConnectionText( (char*)(&c) );
-            return true;
-        }
-        break;
-    }
-    return false;
-}
-
-void SSHDatabase::appendNewConnectionText( char *add )
-{
-    newConnectionText.append( add );
-}
-
-void SSHDatabase::popNewConnectionText()
-{
-    if ( newConnectionText.length() > 0 ) {
-        newConnectionText.erase( newConnectionText.end() - 1 );
-    }
-}
-
 void SSHDatabase::loadDatabase()
 {
     // delete our previous connection database
@@ -238,9 +212,15 @@ void SSHDatabase::writeDatabase()
 
 bool SSHDatabase::addConnection( std::string name, std::string hostname, std::string group, std::string user, std::string password )
 {
-    // first check if this connection already exist in our database
-    if ( getConnectionByName( name ) == NULL ) {
-        connections.push_back( new Connection( name, hostname, group, user, password ) );
+    connections.push_back( new Connection( name, hostname, group, user, password ) );
+    writeDatabase();
+    return true;
+}
+bool SSHDatabase::addConnection( Connection *copy )
+{
+    if ( copy != NULL ) {
+        Connection *newCon = new Connection(copy);
+        connections.push_back( newCon );
         writeDatabase();
         return true;
     }
@@ -264,30 +244,6 @@ Connection* SSHDatabase::removeConnection( Connection *connection )
         }
     }
     return newcom;
-}
-
-bool SSHDatabase::addConnectionInteractive()
-{
-    int height = 3;
-    int width = 100;
-    int y,x;
-    getmaxyx( stdscr, y, x );
-    WINDOW *newConnection = newwin( height,width,(y-height)/2,(x-width)/2 );
-    box( newConnection, 0, 0 );
-    mvwprintw( newConnection, 1, 1, "Add new connection: %s",newConnectionText.c_str() );
-    int c = wgetch( newConnection );
-    while ( handleConnectionInput( c ) == true ) {
-        wclear( newConnection );
-        box( newConnection, 0, 0 );
-        mvwprintw( newConnection, 1, 1, "Add new connection: %s",newConnectionText.c_str() );
-        c = wgetch( newConnection );
-    }
-
-    if ( newConnectionText.empty() == false ) {
-        return true;
-    } else {
-        return false;
-    }
 }
 
 std::vector< std::string > SSHDatabase::getGroups()

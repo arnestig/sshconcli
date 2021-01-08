@@ -30,6 +30,7 @@ class Connection
 {
 public:
     Connection( std::string name, std::string hostname, std::string group, std::string user, std::string password );
+    Connection( Connection *copy );
     ~Connection();
 
     std::string getName() const;
@@ -60,8 +61,8 @@ public:
     SSHDatabase();
     ~SSHDatabase();
 
-    bool addConnectionInteractive();
     bool addConnection( std::string name, std::string hostname, std::string group, std::string user, std::string password );
+    bool addConnection( Connection *copy );
     Connection* removeConnection( Connection *connection );
     void loadDatabase();
     std::vector< Connection* > getConnections( std::string searchText = "" );
@@ -72,13 +73,9 @@ public:
     void setRunOnExit(Connection *conn);
 
 private:
-    void appendNewConnectionText( char *add );
-    void popNewConnectionText();
-    bool handleConnectionInput( int c );
     void writeDatabase();
     Connection *runOnExit;
 
-    std::string newConnectionText;
     std::vector< Connection* > connections;
 };
 

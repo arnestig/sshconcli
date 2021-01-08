@@ -36,6 +36,7 @@ Window::Window()
     initscr();
     noecho();
     start_color();
+    newConText.resize(5);
 }
 
 Window::~Window()
@@ -132,8 +133,16 @@ void Window::handleInput( int c )
             }
         }
         break;
-    case K_CTRL_T:
-        Resources::Instance()->getSSHDatabase()->addConnectionInteractive();
+    case K_CTRL_E:
+        addConnectionInteractive( true );
+        loadConnections(selectedGroup > 0);
+        break;
+    case K_CTRL_K:
+        Resources::Instance()->getSSHDatabase()->addConnection( curConnection );
+        loadConnections(selectedGroup > 0);
+        break;
+    case K_CTRL_N:
+        addConnectionInteractive( false );
         loadConnections(selectedGroup > 0);
         break;
     case K_CTRL_D:
@@ -187,6 +196,138 @@ void Window::handleInput( int c )
     }
 }
 
+bool Window::handleNewConnectionInput( int c, bool mode )
+{
+    switch ( c ) {
+    case KEY_UP:
+        newConLine--;
+        if ( newConLine == -1 ) {
+            newConLine = 4;
+        }
+        return true;
+        break;
+    case 9:
+    case KEY_DOWN:
+        newConLine++;
+        if ( newConLine == 5 ) {
+            newConLine = 0;
+        }
+        return true;
+        break;
+    case KEY_ENTER:
+    case K_ENTER:
+        if ( mode == false ) { // add connection
+            Resources::Instance()->getSSHDatabase()->addConnection(newConText[0], newConText[1], newConText[2], newConText[3], newConText[4] );
+            for ( size_t i = 0; i < newConText.size(); i++ ) {
+                newConText[i].clear();
+            }
+        } else { // edit connection
+            curConnection->setName( newConText[ 0 ] );
+            curConnection->setHostname( newConText[ 1 ] );
+            curConnection->setGroup( newConText[ 2 ] );
+            curConnection->setUser( newConText[ 3 ] );
+            curConnection->setPassword( newConText[ 4 ] );
+
+        }
+        return false;
+        break;
+    case KEY_BACKSPACE:
+    case K_BACKSPACE:
+        if ( newConText[newConLine].size() > 0 ) {
+            newConText[newConLine].erase(newConText[newConLine].size()-1);
+        }
+        return true;
+        break;
+    default:
+        if ( c > 31 && c < 127 ) {
+            newConText[newConLine].append( (char*)(&c) );
+            return true;
+        }
+        break;
+    }
+    return false;
+}
+
+void Window::addConnectionInteractive( bool editMode )
+{
+    int height = 9;
+    int width = 40;
+    int y,x;
+    std::string newConnectionText;
+    getmaxyx( stdscr, y, x );
+    WINDOW *newConnection = newwin( height,width,y/2-(height/2),x/2-(width/2) );
+    keypad( newConnection, true );
+    wclear(newConnection);
+    box( newConnection, 0, 0 );
+    wattron( newConnection, COLOR_PAIR(1) );
+    if ( editMode == false ) {
+        mvwprintw( newConnection, 0, 2, " Add new connection ");
+        mvwprintw( newConnection, 2, 1, "Name: ");
+        mvwprintw( newConnection, 3, 1, "Hostname: ");
+        mvwprintw( newConnection, 4, 1, "Group: ");
+        mvwprintw( newConnection, 5, 1, "Username: ");
+        mvwprintw( newConnection, 6, 1, "Password: ");
+        wmove( newConnection, 2, 12 );
+    } else {
+        newConText[0] = curConnection->getName();
+        newConText[1] = curConnection->getHostname();
+        newConText[2] = curConnection->getGroup();
+        newConText[3] = curConnection->getUser();
+        newConText[4] = curConnection->getPassword();
+        mvwprintw( newConnection, 0, 2, " Edit connection ");
+        mvwprintw( newConnection, 2, 1, "Name: " );
+        mvwprintw( newConnection, 3, 1, "Hostname: " );
+        mvwprintw( newConnection, 4, 1, "Group: " );
+        mvwprintw( newConnection, 5, 1, "Username: " );
+        mvwprintw( newConnection, 6, 1, "Password: " );
+        wattroff( newConnection, COLOR_PAIR(1) );
+        mvwprintw( newConnection, 2, 12, "%s", newConText[0].c_str());
+        mvwprintw( newConnection, 3, 12, "%s", newConText[1].c_str());
+        mvwprintw( newConnection, 4, 12, "%s", newConText[2].c_str());
+        mvwprintw( newConnection, 5, 12, "%s", newConText[3].c_str());
+        std::string pass;
+        for ( size_t i = 0; i < newConText[4].length(); i++ ) {
+            pass.append("*");
+        }
+        mvwprintw( newConnection, 6, 12, "%s", pass.c_str());
+        wmove( newConnection, 2, 12 + newConText[0].length() );
+    }
+    wattroff( newConnection, COLOR_PAIR(1) );
+    wnoutrefresh( newConnection );
+    doupdate();
+    newConLine = 0;
+    int c = wgetch( newConnection );
+    while ( handleNewConnectionInput( c, editMode ) == true ) {
+        wclear( newConnection );
+        box( newConnection, 0, 0 );
+        wattron( newConnection, COLOR_PAIR(1) );
+        if ( editMode == false ) {
+            mvwprintw( newConnection, 0, 2, " Add new connection ");
+        } else {
+            mvwprintw( newConnection, 0, 2, " Edit connection ");
+        }
+        mvwprintw( newConnection, 2, 1, "Name: " );
+        mvwprintw( newConnection, 3, 1, "Hostname: " );
+        mvwprintw( newConnection, 4, 1, "Group: " );
+        mvwprintw( newConnection, 5, 1, "Username: " );
+        mvwprintw( newConnection, 6, 1, "Password: " );
+        wattroff( newConnection, COLOR_PAIR(1) );
+        mvwprintw( newConnection, 2, 12, "%s", newConText[0].c_str());
+        mvwprintw( newConnection, 3, 12, "%s", newConText[1].c_str());
+        mvwprintw( newConnection, 4, 12, "%s", newConText[2].c_str());
+        mvwprintw( newConnection, 5, 12, "%s", newConText[3].c_str());
+        std::string pass;
+        for ( size_t i = 0; i < newConText[4].length(); i++ ) {
+            pass.append("*");
+        }
+        mvwprintw( newConnection, 6, 12, "%s", pass.c_str());
+        wmove( newConnection, 2+newConLine, 12 + newConText[newConLine].length());
+        wnoutrefresh( newConnection );
+        doupdate();
+        c = wgetch( newConnection );
+    }
+}
+
 void Window::draw()
 {
     wclear( searchWindow );
@@ -199,7 +340,13 @@ void Window::draw()
     init_pair(2,COLOR_BLUE, COLOR_BLACK);
 
     // draw help
-    mvwprintw( helpWindow, 1, 1, "Ctrl+T - %s", "Add new connection" );
+    // ^D - delete
+    // ^N - new
+    // ^K - duplicate
+    // ^E - edit
+    wattron( helpWindow, COLOR_PAIR(1) );
+    mvwprintw( helpWindow, 1, 1, "^D delete | ^N new | ^K duplicate | ^E edit");
+    wattroff( helpWindow, COLOR_PAIR(1) );
 
     // draw groups
     size_t g = 0;

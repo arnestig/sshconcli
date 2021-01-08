@@ -26,8 +26,32 @@
 #define Y_OFFSET_HELP 1
 #define Y_OFFSET_CONNECTIONS 2
 
+#define K_CTRL_A 1
+#define K_CTRL_B 2
+#define K_CTRL_C 3
 #define K_CTRL_D 4
+#define K_CTRL_E 5
+#define K_CTRL_F 6
+#define K_CTRL_G 7
+#define K_CTRL_H 8
+#define K_CTRL_I 9
+#define K_CTRL_J 10
+#define K_CTRL_K 11
+#define K_CTRL_L 12
+#define K_CTRL_M 13
+#define K_CTRL_N 14
+#define K_CTRL_O 15
+#define K_CTRL_P 16
+#define K_CTRL_Q 17
+#define K_CTRL_R 18
+#define K_CTRL_S 19
 #define K_CTRL_T 20
+#define K_CTRL_U 21
+#define K_CTRL_V 22
+#define K_CTRL_W 23
+#define K_CTRL_X 24
+#define K_CTRL_Y 25
+#define K_CTRL_Z 26
 #define K_ENTER 10
 #define K_BACKSPACE 127
 
@@ -46,23 +70,27 @@ public:
     void draw();
 
 private:
-    unsigned int selectedPosition;
-    unsigned int selectedGroup;
-    std::string searchText;
-
     void loadConnections( bool byGroup = false );
     void runConnection();
     void handleInput( int c );
+    bool handleNewConnectionInput( int c, bool mode );
     std::string getSearchText();
     void appendSearchText( char *add );
     void popSearchText();
+    void addConnectionInteractive( bool editMode );
+
+    unsigned int selectedPosition;
+    unsigned int selectedGroup;
+    std::string searchText;
     std::vector< Connection* > connections;
     std::vector< std::string > groups;
+    std::vector< std::string > newConText;
     Connection *curConnection;
     WINDOW *helpWindow;
     WINDOW *searchWindow;
     WINDOW *connectionWindow;
     WINDOW *groupWindow;
+    int newConLine;
 };
 
 #endif
